@@ -1,6 +1,7 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using TMPro;
 
 public class MainMenuUI : MonoBehaviour
 {
@@ -14,60 +15,114 @@ public class MainMenuUI : MonoBehaviour
 
     [Header("Character UI")]
     public Image portraitImage;
-    public Text nameText;
+    public TextMeshProUGUI nameText;
 
-    private int currentCharIndex = -1;
+    private int characterIndex = 0;
+    private CharacterSpecSO pickedCharacter = null;
 
     void Start()
     {
+        OpenMainPanel();
+    }
+
+    // --------------------------
+    // หน้าแรก
+    // --------------------------
+    public void OpenMainPanel()
+    {
         mainPanel.SetActive(true);
         characterPanel.SetActive(false);
     }
 
-    // ========== MAIN ==========
-    public void OnClickStart()
+    // --------------------------
+    // หน้าเลือกตัวละคร
+    // --------------------------
+    public void OpenCharacterPanel()
     {
         mainPanel.SetActive(false);
         characterPanel.SetActive(true);
-        PickCharacter(0);
+
+        characterIndex = 0;
+        pickedCharacter = null; // ยังไม่ pick
+        UpdateCharacterUI();
     }
 
-    public void OnClickExit()
+    // --------------------------
+    // อัพเดต UI ของตัวละครปัจจุบัน
+    // --------------------------
+    private void UpdateCharacterUI()
     {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
+        var c = characters[characterIndex];
+
+        nameText.text = c.displayName;
+
+        if (c.portraits != null && c.portraits.Length > 0)
+            portraitImage.sprite = c.portraits[0];
+        else
+            portraitImage.sprite = null;
+    }
+
+    // --------------------------
+    // Next / Previous
+    // --------------------------
+    public void OnNext()
+    {
+        characterIndex++;
+        if (characterIndex >= characters.Length)
+            characterIndex = 0;
+
+        UpdateCharacterUI();
+    }
+
+    public void OnPrev()
+    {
+        characterIndex--;
+        if (characterIndex < 0)
+            characterIndex = characters.Length - 1;
+
+        UpdateCharacterUI();
+    }
+
+    // --------------------------
+    // ปุ่ม Pick = เลือกตัวละครนี้
+    // --------------------------
+    public void OnPickCharacter()
+    {
+        pickedCharacter = characters[characterIndex];
+
+        Debug.Log("Picked: " + pickedCharacter.displayName);
+    }
+
+    // --------------------------
+    // Confirm = นำตัวที่ pick ไปให้เกมจริงโหลด
+    // --------------------------
+    public void OnConfirm()
+    {
+        if (pickedCharacter == null)
+        {
+            Debug.LogWarning("You must pick a character before confirming!");
+            return;
+        }
+
+        GameSession.Instance.selectedCharacter = pickedCharacter;
+
+        // สุ่มแมพ
+        if (maps.Length > 0)
+        {
+            GameSession.Instance.selectedMap =
+                maps[Random.Range(0, maps.Length)];
+        }
+
+        SceneManager.LoadScene("SampleScene"); // เปลี่ยนชื่อให้ตรงกับเกมจริง
+    }
+
+    public void OnBackButton()
+    {
+        OpenMainPanel();
+    }
+
+    public void OnExit()
+    {
         Application.Quit();
-#endif
-    }
-
-    // ========== CHARACTER SELECT ==========
-    public void PickCharacter(int index)
-    {
-        if (index < 0 || index >= characters.Length) return;
-        currentCharIndex = index;
-
-        var spec = characters[index];
-        if (portraitImage) portraitImage.sprite = spec.portrait;
-        if (nameText) nameText.text = spec.displayName;
-    }
-
-    public void OnClickConfirmCharacter()
-    {
-        if (currentCharIndex < 0) return;
-
-        var spec = characters[currentCharIndex];
-        GameSession.I.SetCharacter(spec);
-
-        var map = maps[Random.Range(0, maps.Length)];
-        GameSession.I.SetMap(map);
-
-        SceneManager.LoadScene(map.sceneName);
-    }
-    public void OnClickBack()
-    {
-        characterPanel.SetActive(false);
-
-        mainPanel.SetActive(true);
     }
 }

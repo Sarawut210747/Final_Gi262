@@ -2,14 +2,14 @@ using UnityEngine;
 
 public class GameSession : MonoBehaviour
 {
-    public static GameSession I;
+    public static GameSession Instance;
     public CharacterSpecSO selectedCharacter;
     public MapDataSO selectedMap;
 
     void Awake()
     {
-        if (I != null && I != this) { Destroy(gameObject); return; }
-        I = this;
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+        Instance = this;
         DontDestroyOnLoad(gameObject);
     }
 
