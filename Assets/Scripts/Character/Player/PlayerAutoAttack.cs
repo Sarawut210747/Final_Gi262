@@ -1,54 +1,48 @@
 using UnityEngine;
-using System.Collections.Generic;
 
 public class PlayerAutoAttack : MonoBehaviour
 {
-    public float attackRange = 5f;
-    public float fireRate = 1f;
     public GameObject bulletPrefab;
+    public Transform firePoint;
 
-    private float timer = 0f;
+    public float shootRange = 6f;
+    public float fireRate = 0.5f;
 
-    // Update is called once per frame
+    float fireTimer;
+
     void Update()
     {
-        timer -= Time.deltaTime;
+        fireTimer -= Time.deltaTime;
 
-        if (timer <= 0)
+        if (fireTimer <= 0)
         {
-            Enemy target = FindClosestEnemy();
-
-            if (target != null)
-            {
-                Shoot(target.transform);
-                timer = fireRate;
-            }
+            TryShoot();
+            fireTimer = fireRate;
         }
     }
 
-    Enemy FindClosestEnemy()
+    void TryShoot()
     {
-        Enemy[] enemies = GameObject.FindObjectsByType<Enemy>(FindObjectsSortMode.None);
+        Enemy[] enemies = FindObjectsOfType<Enemy>();
 
-        Enemy closest = null;
-        float minDist = Mathf.Infinity;
+        Enemy nearest = null;
+        float shortest = Mathf.Infinity;
 
         foreach (Enemy e in enemies)
         {
             float dist = Vector2.Distance(transform.position, e.transform.position);
-
-            if (dist < minDist && dist <= attackRange)
+            if (dist < shortest && dist <= shootRange)
             {
-                minDist = dist;
-                closest = e;
+                shortest = dist;
+                nearest = e;
             }
         }
-        return closest;
-    }
 
-    void Shoot(Transform target)
-    {
-        GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
-        bullet.GetComponent<PlayerBullet>().Setup(target);
+        if (nearest == null) return;
+
+        Vector2 dir = nearest.transform.position - firePoint.position;
+
+        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
+        bullet.GetComponent<PlayerBullet>().Setup(dir);
     }
 }

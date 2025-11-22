@@ -10,7 +10,7 @@ public class PlayerStats : MonoBehaviour
     [Header("Runtime Stats")]
     public float currentHP;
     public float moveSpeed;
-    public float damage;
+    public int damage;
 
     public int killCount = 0;
 
@@ -18,6 +18,12 @@ public class PlayerStats : MonoBehaviour
 
     void Start()
     {
+        spec = GameSession.Instance.selectedCharacter;
+        if (spec == null)
+        {
+            Debug.LogError("SPEC IS NULL !!!");
+            return;
+        }
         // โหลดค่าจากตัวละครที่เลือก
         currentHP = spec.maxHP;
         moveSpeed = spec.moveSpeed;
@@ -38,19 +44,20 @@ public class PlayerStats : MonoBehaviour
             skillManager.TriggerVampirePassive();
         }
     }
-    public void TakeDamage(int damage)
+    public void TakeDamage(int amount)
     {
-        Debug.Log("โดนตี - " + damage);
-        currentHP -= damage;
+        currentHP -= amount;
+        Debug.Log("Player HP = " + currentHP);
+
         if (currentHP <= 0)
         {
-            Die();
+            Debug.Log("PLAYER DEAD");
         }
     }
-    void Die()
+    public void Die()
     {
         // SceneManager.LoadScene("");
-        // Destroy(gameObject);
+        Destroy(gameObject);
 
         Debug.Log("แฮม");
     }

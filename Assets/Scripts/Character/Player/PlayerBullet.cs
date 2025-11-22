@@ -2,31 +2,37 @@ using UnityEngine;
 
 public class PlayerBullet : MonoBehaviour
 {
-    public float Speed = 10f;
+    public float speed = 10f;
     public int damage = 10;
 
-    private Transform target;
+    private Vector2 direction;
 
-    public void Setup(Transform t)
+    public void Setup(Vector2 dir)
     {
-        target = t;
+        direction = dir.normalized;     // เก็บทิศให้กระสุน
+        Destroy(gameObject, 3f);        // กันหลุดจอ
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (target == null) { Destroy(gameObject); return; }
+        transform.Translate(direction * speed * Time.deltaTime);
+    }
 
-        transform.position = Vector2.MoveTowards(
-            transform.position,
-            target.position,
-            Speed * Time.deltaTime
-        );
-
-        if (Vector2.Distance(transform.position, target.position) < 0.1f)
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Enemy"))
         {
-            target.GetComponent<Enemy>().TakeDamage(damage);
+            Debug.Log("Hit Enemy");
+
+            Enemy e = other.GetComponent<Enemy>();
+            if (e != null)
+            {
+                e.TakeDamage(damage);
+            }
+
             Destroy(gameObject);
         }
     }
+
+
 }

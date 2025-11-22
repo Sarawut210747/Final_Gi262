@@ -2,43 +2,52 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    public int hp = 50;
-    private int currentHP;
-
-    private Transform player;
-
+    public int maxHp = 30;
+    public int touchDamage = 10;
+    public PlayerLevel playerLevel;
+    int currentHp;
 
     void Start()
     {
-        player = GameObject.FindGameObjectWithTag("Player").transform;
-        currentHP = hp;
+        currentHp = maxHp;
+        playerLevel = GameObject.FindWithTag("Player")
+                             .GetComponent<PlayerLevel>();
     }
 
-    void Update()
+    public void TakeDamage(int amount)
     {
-        if (player == null) return;
-    }
+        currentHp -= amount;
+        Debug.Log("Enemy HP = " + currentHp);
 
-    public void TakeDamage(int dmg)
-    {
-        currentHP -= dmg;
-        if (currentHP <= 0)
+        if (currentHp <= 0)
         {
             Die();
         }
     }
-    void OnCollisionEnter2D(Collision2D collision)
+
+    private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.collider.CompareTag("Player"))
         {
-            collision.collider.GetComponent<PlayerStats>().TakeDamage(10);
+            Debug.Log("Hit Player");
+
+            // ดึง PlayerStats
+            PlayerStats ps = collision.collider.GetComponent<PlayerStats>();
+            if (ps != null)
+            {
+                ps.TakeDamage(touchDamage);
+            }
+
+            // มอนตายหลังชน
+            Die();
         }
     }
+
     void Die()
     {
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        playerObj.GetComponent<PlayerStats>().OnEnemyKilled();
-
+        playerLevel.AddExp(5);
+        Debug.Log(name + " died!");
         Destroy(gameObject);
+
     }
 }
