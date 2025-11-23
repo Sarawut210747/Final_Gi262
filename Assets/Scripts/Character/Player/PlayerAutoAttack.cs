@@ -7,9 +7,13 @@ public class PlayerAutoAttack : MonoBehaviour
 
     public float shootRange = 6f;
     public float fireRate = 0.5f;
-
+    public PlayerInventory inventory;
     float fireTimer;
 
+    void Start()
+    {
+        inventory = GetComponent<PlayerInventory>();
+    }
     void Update()
     {
         fireTimer -= Time.deltaTime;

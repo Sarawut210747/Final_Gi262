@@ -1,4 +1,6 @@
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerLevel : MonoBehaviour
 {
@@ -6,6 +8,9 @@ public class PlayerLevel : MonoBehaviour
     public int currentExp = 0;
     public int expToNext = 20;
 
+    [Header("UI")]
+    public Slider expBar;
+    public TextMeshProUGUI leveText;
     public LevelUpUI levelUpUI;
 
     public void AddExp(int amount)
@@ -16,17 +21,34 @@ public class PlayerLevel : MonoBehaviour
         {
             LevelUp();
         }
+
+        UpdateUI();
     }
 
     void LevelUp()
     {
         level++;
+
         currentExp = 0;
         expToNext += 10;
 
-        Debug.Log("LEVEL UP!");
+        UpdateUI();
 
         Time.timeScale = 0f; // หยุดเกมให้เลือกไอเทม
         levelUpUI.ShowOptions();
+    }
+
+    void UpdateUI()
+    {
+        if (expBar != null)
+        {
+            expBar.maxValue = expToNext;
+            expBar.value = currentExp;
+        }
+
+        if (leveText != null)
+        {
+            leveText.text = "LV" + level;
+        }
     }
 }

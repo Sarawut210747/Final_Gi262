@@ -31,21 +31,19 @@ public class Enemy : MonoBehaviour
         {
             Debug.Log("Hit Player");
 
-            // ดึง PlayerStats
             PlayerStats ps = collision.collider.GetComponent<PlayerStats>();
             if (ps != null)
             {
                 ps.TakeDamage(touchDamage);
             }
 
-            // มอนตายหลังชน
             Die();
         }
     }
 
     void Die()
     {
-        playerLevel.AddExp(5);
+        FindFirstObjectByType<PlayerLevel>().AddExp(5);
         Debug.Log(name + " died!");
         Destroy(gameObject);
 
