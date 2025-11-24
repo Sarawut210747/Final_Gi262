@@ -10,7 +10,7 @@ public class PlayerLevel : MonoBehaviour
 
     [Header("UI")]
     public Slider expBar;
-    public TextMeshProUGUI leveText;
+    //public TextMeshProUGUI leveText;
     public LevelUpUI levelUpUI;
 
     public void AddExp(int amount)
@@ -40,15 +40,6 @@ public class PlayerLevel : MonoBehaviour
 
     void UpdateUI()
     {
-        if (expBar != null)
-        {
-            expBar.maxValue = expToNext;
-            expBar.value = currentExp;
-        }
-
-        if (leveText != null)
-        {
-            leveText.text = "LV" + level;
-        }
+        expBar.value = (float)currentExp / (float)expToNext;
     }
 }

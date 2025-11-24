@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -15,6 +16,17 @@ public class PlayerStats : MonoBehaviour
     public int killCount = 0;
 
     private SkillManager skillManager;
+
+    public Sprite characterSprite;
+    public int level;
+    public int currentExp;
+    public int expToNextLevel;
+    public int maxHP;
+    public int attackDamage;
+    public List<WeaponSO> weapons = new List<WeaponSO>();
+    public List<AccessorySO> accessories = new List<AccessorySO>();
+
+
 
     void Start()
     {
