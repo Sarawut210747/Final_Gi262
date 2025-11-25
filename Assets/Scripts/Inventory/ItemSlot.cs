@@ -7,33 +7,31 @@ public class ItemSlot : MonoBehaviour
     public Image icon;
     public TMP_Text nameText;
 
-    // ---------- SET WEAPON ----------
+    // สำหรับอาวุธ
     public void SetWeapon(WeaponSO weapon)
     {
-        if (weapon == null) { ClearSlot(); return; }
+        if (weapon == null) return;
 
-        icon.sprite = weapon.icon;
+        icon.sprite = weapon.icon;    // โชว์รูป
         icon.enabled = true;
 
-        nameText.text = weapon.weaponName;
+        nameText.text = weapon.name;
     }
 
-    // ---------- SET ACCESSORY ----------
+    // สำหรับ Accessory
     public void SetAccessory(AccessorySO acc)
     {
-        if (acc == null) { ClearSlot(); return; }
+        if (acc == null) return;
 
-        icon.sprite = acc.icon;
+        icon.sprite = acc.icon;       // โชว์รูป
         icon.enabled = true;
 
-        nameText.text = acc.itemName;
+        nameText.text = acc.name;
     }
 
-    // ---------- CLEAR SLOT ----------
     public void ClearSlot()
     {
         icon.sprite = null;
         icon.enabled = false;
-        nameText.text = "";
     }
 }

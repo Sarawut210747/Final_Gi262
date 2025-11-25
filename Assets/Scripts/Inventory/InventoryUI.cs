@@ -9,22 +9,13 @@ public class InventoryUI : MonoBehaviour
 
     public void Refresh()
     {
-        // อาวุธ
-        for (int i = 0; i < weaponSlots.Length; i++)
-        {
-            if (i < inventory.currentWeapons.Count)
-                weaponSlots[i].SetWeapon(inventory.currentWeapons[i]);
-            else
-                weaponSlots[i].ClearSlot();
-        }
 
-        // Accessories
-        for (int i = 0; i < accessorySlots.Length; i++)
-        {
-            if (i < inventory.currentAccessories.Count)
-                accessorySlots[i].SetAccessory(inventory.currentAccessories[i]);
-            else
-                accessorySlots[i].ClearSlot();
-        }
+        // เติมอาวุธ
+        for (int i = 0; i < inventory.currentWeapons.Count && i < weaponSlots.Length; i++)
+            weaponSlots[i].SetWeapon(inventory.currentWeapons[i]);
+
+        // เติม accessory
+        for (int i = 0; i < inventory.currentAccessories.Count && i < accessorySlots.Length; i++)
+            accessorySlots[i].SetAccessory(inventory.currentAccessories[i]);
     }
 }

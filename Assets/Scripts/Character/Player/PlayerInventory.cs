@@ -1,83 +1,85 @@
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
 
 public class PlayerInventory : MonoBehaviour
 {
-    public PlayerStats stats;
+    [Header("Current Stats UI")]
+    public TMPro.TMP_Text statusSkillText;
+    public TMPro.TMP_Text skillText;
+    public TMPro.TMP_Text passiveText;
+    public TMPro.TMP_Text hpText;
+    public TMPro.TMP_Text attackText;
 
-    // เก็บ level ของอาวุธและ accessory
-    public Dictionary<WeaponSO, int> weaponLevels = new Dictionary<WeaponSO, int>();
-    public Dictionary<AccessorySO, int> accessoryLevels = new Dictionary<AccessorySO, int>();
-
-    // UI แสดงผล Stat (โยงจาก Player ใน Inspector)
-    public TextMeshProUGUI statusSkillText;
-    public TextMeshProUGUI skillText;
-    public TextMeshProUGUI passiveText;
-    public TextMeshProUGUI hpText;
-    public TextMeshProUGUI attackText;
-
-    // เก็บอาวุธ 6 ชิ้นสูงสุด
+    [Header("Items")]
     public List<WeaponSO> currentWeapons = new List<WeaponSO>();
     public List<AccessorySO> currentAccessories = new List<AccessorySO>();
 
-    void Start()
+    // ระบบเลเวลอาวุธและไอเทม
+    public Dictionary<WeaponSO, int> weaponLevels = new Dictionary<WeaponSO, int>();
+    public Dictionary<AccessorySO, int> accessoryLevels = new Dictionary<AccessorySO, int>();
+
+    PlayerStats stats;
+
+    private void Start()
     {
         stats = GetComponent<PlayerStats>();
     }
 
-    // ----------------------------
+    // ------------------------------------------------------
     // เพิ่มอาวุธ
-    // ----------------------------
+    // ------------------------------------------------------
     public void AddWeapon(WeaponSO weapon)
     {
         if (!weaponLevels.ContainsKey(weapon))
         {
-            // อาวุธยังไม่มี → เพิ่มใหม่
-            weaponLevels.Add(weapon, 1);
             currentWeapons.Add(weapon);
+            weaponLevels.Add(weapon, 1);
 
             stats.attackDamage += weapon.attackBonus;
+            UpdateUI();
+            return;
         }
-        else
+
+        // อัปเลเวลเพิ่ม
+        if (weaponLevels[weapon] < weapon.maxLevel)
         {
-            // อัพเลเวลอาวุธ
             weaponLevels[weapon]++;
-
             stats.attackDamage += weapon.attackBonus;
         }
 
-        RefreshUI();
+        UpdateUI();
     }
 
-    // ----------------------------
+    // ------------------------------------------------------
     // เพิ่ม Accessory
-    // ----------------------------
+    // ------------------------------------------------------
     public void AddAccessory(AccessorySO item)
     {
         if (!accessoryLevels.ContainsKey(item))
         {
-            accessoryLevels.Add(item, 1);
             currentAccessories.Add(item);
+            accessoryLevels.Add(item, 1);
 
             stats.maxHP += item.hpBonus;
             stats.moveSpeed += item.speedBonus;
+            UpdateUI();
+            return;
         }
-        else
+
+        if (accessoryLevels[item] < item.maxLevel)
         {
             accessoryLevels[item]++;
-
             stats.maxHP += item.hpBonusPerLevel;
             stats.moveSpeed += item.speedBonusPerLevel;
         }
 
-        RefreshUI();
+        UpdateUI();
     }
 
-    // ----------------------------
-    // อัพเดท UI
-    // ----------------------------
-    void RefreshUI()
+    // ------------------------------------------------------
+    // อัปเดต UI
+    // ------------------------------------------------------
+    public void UpdateUI()
     {
         hpText.text = "HP : " + stats.currentHP + "/" + stats.maxHP;
         attackText.text = "ATK : " + stats.attackDamage;
