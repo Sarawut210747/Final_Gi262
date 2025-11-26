@@ -1,94 +1,83 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public class CharacterSpec
+{
+    public CharacterType type;
+    public float skillCooldown = 5f;
+}
+
 public class PlayerStats : MonoBehaviour
 {
     [Header("Base Stats")]
-    public float maxHP = 100;
-    public float attack = 10;
-    public float moveSpeed = 3;
+    public float maxHP = 100f;
+    public float currentHP = 100f;
+    public float attackDamage = 5f;
+    public float moveSpeed = 3f;
 
-    [Header("Inventory Data")]
-    public List<WeaponSO> weapons = new List<WeaponSO>();
-    public List<AccessorySO> accessories = new List<AccessorySO>();
+    [Header("Level System")]
+    public int level = 1;
+    public int exp = 0;
+    public int expToNextLevel = 20;
 
-    // เก็บเลเวลแบบเป็น Dictionary
+    [Header("Character Data")]
+    public CharacterSpec spec;             // ← สำหรับเช็ค type และ skillCooldown
+    public Sprite characterSprite;         // ← รูปตัวละครโชว์ในหน้า Stat
+
     public Dictionary<WeaponSO, int> weaponLevels = new Dictionary<WeaponSO, int>();
     public Dictionary<AccessorySO, int> accessoryLevels = new Dictionary<AccessorySO, int>();
 
-    private void Start()
+    void Start()
     {
-        // เริ่มต้นให้ทุกอาวุธเลเวล 1
-        foreach (var w in weapons)
+        currentHP = maxHP;
+        RightPanelStats.UpdateStats(this);  // อัปเดตหน้า Stat UI
+    }
+
+    // -------------------------
+    // Damage System
+    // -------------------------
+    public void TakeDamage(float amount)
+    {
+        currentHP -= amount;
+
+        if (currentHP <= 0)
         {
-            if (!weaponLevels.ContainsKey(w))
-                weaponLevels[w] = 1;
+            currentHP = 0;
+            Die();
         }
 
-        // เริ่มต้น Accessory เลเวล 1
-        foreach (var a in accessories)
-        {
-            if (!accessoryLevels.ContainsKey(a))
-                accessoryLevels[a] = 1;
-        }
+        RightPanelStats.UpdateStats(this);
     }
 
-    // ================ Weapon ===================
-
-    public int GetWeaponLevel(WeaponSO weapon)
+    void Die()
     {
-        if (weaponLevels.ContainsKey(weapon))
-            return weaponLevels[weapon];
-
-        return 0;
+        Debug.Log("Player Died");
+        // ใส่ Game Over ก็ได้
     }
 
-    public void LevelUpWeapon(WeaponSO weapon)
+    // -------------------------
+    // Add EXP + LevelUp
+    // -------------------------
+    public void AddExp(int value)
     {
-        if (!weaponLevels.ContainsKey(weapon))
-            weaponLevels[weapon] = 1;
+        exp += value;
 
-        int lv = weaponLevels[weapon];
-
-        if (lv < weapon.maxLevel)
-        {
-            weaponLevels[weapon]++;
-            ApplyWeaponBonus(weapon);
-        }
+        if (exp >= expToNextLevel)
+            LevelUp();
     }
 
-    private void ApplyWeaponBonus(WeaponSO weapon)
+    void LevelUp()
     {
-        attack += weapon.damagePerLevel[weaponLevels[weapon] - 1];
-    }
+        exp = 0;
+        level++;
 
-    // ================ Accessory ===================
+        // เพิ่มค่าสเตทเวลาเลเวลอัพ
+        maxHP += 20;
+        currentHP = maxHP;
+        attackDamage += 2f;
+        moveSpeed += 0.2f;
 
-    public int GetAccessoryLevel(AccessorySO acc)
-    {
-        if (accessoryLevels.ContainsKey(acc))
-            return accessoryLevels[acc];
-
-        return 0;
-    }
-
-    public void LevelUpAccessory(AccessorySO acc)
-    {
-        if (!accessoryLevels.ContainsKey(acc))
-            accessoryLevels[acc] = 1;
-
-        int lv = accessoryLevels[acc];
-
-        if (lv < acc.maxLevel)
-        {
-            accessoryLevels[acc]++;
-            ApplyAccessoryBonus(acc);
-        }
-    }
-
-    private void ApplyAccessoryBonus(AccessorySO acc)
-    {
-        maxHP += acc.hpBonus;
-        moveSpeed += acc.speedBonus;
+        RightPanelStats.UpdateStats(this);
     }
 }
