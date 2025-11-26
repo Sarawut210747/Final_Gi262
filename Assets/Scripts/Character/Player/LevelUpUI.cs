@@ -1,91 +1,123 @@
 using System.Collections.Generic;
-using System.Data.Common;
-using System.Linq;
-using TMPro;
 using UnityEngine;
+using TMPro;
 using UnityEngine.UI;
 
 public class LevelUpUI : MonoBehaviour
 {
+    [Header("UI Panel")]
     public GameObject panel;
 
-    [Header("Button Options")]
+    [Header("Option Buttons (3 ปุ่ม)")]
     public Button[] optionButtons;
+
+    [Header("Icon ของ Option")]
     public Image[] optionIcons;
-    public TextMeshProUGUI[] optionNames;
 
-    public WeaponSO[] weapons;
-    public AccessorySO[] accessories;
+    [Header("ชื่อของ Option")]
+    public TMP_Text[] optionNames;
 
-    public PlayerInventory inventory;
+    private PlayerStats stats;
+
+    private List<WeaponSO> allWeapons = new List<WeaponSO>();
+    private List<AccessorySO> allAccessories = new List<AccessorySO>();
+
+    private List<object> currentChoices = new List<object>();
 
     void Start()
     {
-        inventory = FindFirstObjectByType<PlayerInventory>();
+        stats = FindAnyObjectByType<PlayerStats>();
+
+        // ดึงอาวุธทั้งหมดใน Resources/WeaponSO
+        allWeapons.AddRange(Resources.LoadAll<WeaponSO>("WeaponSO"));
+
+        // ดึง Accessories ทั้งหมดใน Resources/AccessorySO
+        allAccessories.AddRange(Resources.LoadAll<AccessorySO>("AccessorySO"));
+
+        panel.SetActive(false);
     }
 
-    public void ShowOptions()
+    // เรียกใช้ตอนผู้เล่นเลเวลอัพ
+    public void ShowUI()
     {
         panel.SetActive(true);
-        Generate3RandomChoices();
+        Time.timeScale = 0f; // หยุดเกมเมื่ออัปเลเวล
+
+        GenerateOptions();
     }
 
-    void Generate3RandomChoices()
-    {
-        List<object> possibleChoices = new List<object>();
-
-        foreach (var w in weapons)
-        {
-            if (!inventory.weaponLevels.ContainsKey(w) ||
-                inventory.weaponLevels[w] < w.maxLevel)
-                possibleChoices.Add(w);
-        }
-        foreach (var a in accessories)
-        {
-            if (!inventory.accessoryLevels.ContainsKey(a) ||
-                inventory.accessoryLevels[a] < a.maxLevel)
-                possibleChoices.Add(a);
-        }
-        var selected = possibleChoices.OrderBy(x => Random.value).Take(3).ToList();
-
-        for (int i = 0; i < optionButtons.Length; i++)
-        {
-            if (selected[i] is WeaponSO w)
-            {
-                optionIcons[i].sprite = w.icon;
-                optionNames[i].text = w.weaponName + "( Lv"
-                + (inventory.weaponLevels.ContainsKey(w) ? inventory.weaponLevels[w] + 1 : 1) + ")";
-
-                optionButtons[i].onClick.RemoveAllListeners();
-                optionButtons[i].onClick.AddListener(() => ChooseWeapon(w));
-            }
-            else if (selected[i] is AccessorySO a)
-            {
-                optionIcons[i].sprite = a.icon;
-                optionNames[i].text = a.itemName + "(Lv"
-                + (inventory.accessoryLevels.ContainsKey(a) ? inventory.accessoryLevels[a] + 1 : 1) + ")";
-
-                optionButtons[i].onClick.RemoveAllListeners();
-                optionButtons[i].onClick.AddListener(() => ChooseAccessory(a));
-            }
-        }
-    }
-
-    public void ChooseWeapon(WeaponSO weapon)
-    {
-        inventory.AddWeapon(weapon);
-        Close();
-    }
-
-    public void ChooseAccessory(AccessorySO acc)
-    {
-        inventory.AddAccessory(acc);
-        Close();
-    }
-
-    void Close()
+    public void HideUI()
     {
         panel.SetActive(false);
         Time.timeScale = 1f;
+    }
+
+    // --------------------------
+    // สุ่มไอเท็มมาให้เลือก
+    // --------------------------
+    void GenerateOptions()
+    {
+        currentChoices.Clear();
+
+        List<object> list = new List<object>();
+
+        // อาวุธที่ยังไม่ Max level
+        foreach (var w in allWeapons)
+        {
+            int lv = stats.GetWeaponLevel(w);
+            if (lv < w.maxLevel)
+                list.Add(w);
+        }
+
+        // Accessories ที่ยังไม่ Max
+        foreach (var a in allAccessories)
+        {
+            int lv = stats.GetAccessoryLevel(a);
+            if (lv < a.maxLevel)
+                list.Add(a);
+        }
+
+        // สุ่มแค่ 3 ตัวเลือก
+        for (int i = 0; i < 3; i++)
+        {
+            object choice = list[Random.Range(0, list.Count)];
+            currentChoices.Add(choice);
+            SetOptionUI(i, choice);
+        }
+    }
+
+    // ใส่ข้อมูลลงปุ่ม UI
+    void SetOptionUI(int index, object data)
+    {
+        if (data is WeaponSO weapon)
+        {
+            optionNames[index].text = $"{weapon.weaponName} (Lv {stats.GetWeaponLevel(weapon)})";
+            optionIcons[index].sprite = weapon.icon;
+        }
+        else if (data is AccessorySO acc)
+        {
+            optionNames[index].text = $"{acc.itemName} (Lv {stats.GetAccessoryLevel(acc)})";
+            optionIcons[index].sprite = acc.icon;
+        }
+
+        int i = index;
+        optionButtons[index].onClick.RemoveAllListeners();
+        optionButtons[index].onClick.AddListener(() => Select(i));
+    }
+
+    // --------------------------
+    // เมื่อกดปุ่มเลือก
+    // --------------------------
+    void Select(int index)
+    {
+        object choice = currentChoices[index];
+
+        if (choice is WeaponSO weapon)
+            stats.LevelUpWeapon(weapon);
+
+        if (choice is AccessorySO acc)
+            stats.LevelUpAccessory(acc);
+
+        HideUI();
     }
 }

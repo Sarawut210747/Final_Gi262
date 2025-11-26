@@ -35,7 +35,6 @@ public class PlayerLevel : MonoBehaviour
         UpdateUI();
 
         Time.timeScale = 0f; // หยุดเกมให้เลือกไอเทม
-        levelUpUI.ShowOptions();
     }
 
     void UpdateUI()

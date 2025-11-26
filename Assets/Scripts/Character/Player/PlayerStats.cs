@@ -1,76 +1,94 @@
 using System.Collections.Generic;
-using UnityEditor.SearchService;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class PlayerStats : MonoBehaviour
 {
-    [Header("Assigned at Start")]
-    public CharacterSpecSO spec; // ตัวละครที่เลือกจากเมนู
+    [Header("Base Stats")]
+    public float maxHP = 100;
+    public float attack = 10;
+    public float moveSpeed = 3;
 
-    [Header("Runtime Stats")]
-    public float currentHP;
-    public float moveSpeed;
-    public int damage;
-
-    public int killCount = 0;
-
-    private SkillManager skillManager;
-
-    public Sprite characterSprite;
-    public int level;
-    public int currentExp;
-    public int expToNextLevel;
-    public int maxHP;
-    public int attackDamage;
+    [Header("Inventory Data")]
     public List<WeaponSO> weapons = new List<WeaponSO>();
     public List<AccessorySO> accessories = new List<AccessorySO>();
 
+    // เก็บเลเวลแบบเป็น Dictionary
+    public Dictionary<WeaponSO, int> weaponLevels = new Dictionary<WeaponSO, int>();
+    public Dictionary<AccessorySO, int> accessoryLevels = new Dictionary<AccessorySO, int>();
 
-
-    void Start()
+    private void Start()
     {
-        spec = GameSession.Instance.selectedCharacter;
-        if (spec == null)
+        // เริ่มต้นให้ทุกอาวุธเลเวล 1
+        foreach (var w in weapons)
         {
-            Debug.LogError("SPEC IS NULL !!!");
-            return;
+            if (!weaponLevels.ContainsKey(w))
+                weaponLevels[w] = 1;
         }
-        // โหลดค่าจากตัวละครที่เลือก
-        currentHP = spec.maxHP;
-        moveSpeed = spec.moveSpeed;
-        damage = spec.baseDamage;
 
-        skillManager = GetComponent<SkillManager>();
-        skillManager.Setup(spec);
-    }
-
-    public void OnEnemyKilled()
-    {
-        killCount++;
-
-        // Passive Vampire = kill ครบ 20 → ระเบิดเลือด
-        if (spec.type == CharacterType.Vampire && killCount >= 20)
+        // เริ่มต้น Accessory เลเวล 1
+        foreach (var a in accessories)
         {
-            killCount = 0;
-            skillManager.TriggerVampirePassive();
+            if (!accessoryLevels.ContainsKey(a))
+                accessoryLevels[a] = 1;
         }
     }
-    public void TakeDamage(int amount)
-    {
-        currentHP -= amount;
-        Debug.Log("Player HP = " + currentHP);
 
-        if (currentHP <= 0)
+    // ================ Weapon ===================
+
+    public int GetWeaponLevel(WeaponSO weapon)
+    {
+        if (weaponLevels.ContainsKey(weapon))
+            return weaponLevels[weapon];
+
+        return 0;
+    }
+
+    public void LevelUpWeapon(WeaponSO weapon)
+    {
+        if (!weaponLevels.ContainsKey(weapon))
+            weaponLevels[weapon] = 1;
+
+        int lv = weaponLevels[weapon];
+
+        if (lv < weapon.maxLevel)
         {
-            Debug.Log("PLAYER DEAD");
+            weaponLevels[weapon]++;
+            ApplyWeaponBonus(weapon);
         }
     }
-    public void Die()
-    {
-        // SceneManager.LoadScene("");
-        Destroy(gameObject);
 
-        Debug.Log("แฮม");
+    private void ApplyWeaponBonus(WeaponSO weapon)
+    {
+        attack += weapon.damagePerLevel[weaponLevels[weapon] - 1];
+    }
+
+    // ================ Accessory ===================
+
+    public int GetAccessoryLevel(AccessorySO acc)
+    {
+        if (accessoryLevels.ContainsKey(acc))
+            return accessoryLevels[acc];
+
+        return 0;
+    }
+
+    public void LevelUpAccessory(AccessorySO acc)
+    {
+        if (!accessoryLevels.ContainsKey(acc))
+            accessoryLevels[acc] = 1;
+
+        int lv = accessoryLevels[acc];
+
+        if (lv < acc.maxLevel)
+        {
+            accessoryLevels[acc]++;
+            ApplyAccessoryBonus(acc);
+        }
+    }
+
+    private void ApplyAccessoryBonus(AccessorySO acc)
+    {
+        maxHP += acc.hpBonus;
+        moveSpeed += acc.speedBonus;
     }
 }
