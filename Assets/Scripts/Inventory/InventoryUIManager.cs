@@ -50,9 +50,6 @@ public class InventoryUIManager : MonoBehaviour
         // อัปเดตรูปตัวละคร
         if (characterImage != null && playerStats.characterSprite != null)
             characterImage.sprite = playerStats.characterSprite;
-
-        // อัปเดตไอเทม & อาวุธ
-        InventoryItemPanel.UpdateItems(playerStats);
     }
 
 }

@@ -1,76 +1,83 @@
 using System.Collections.Generic;
-using UnityEditor.SearchService;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+
+[System.Serializable]
+public class CharacterSpec
+{
+    public CharacterType type;
+    public float skillCooldown = 5f;
+}
 
 public class PlayerStats : MonoBehaviour
 {
-    [Header("Assigned at Start")]
-    public CharacterSpecSO spec; // ตัวละครที่เลือกจากเมนู
+    [Header("Base Stats")]
+    public float maxHP = 100f;
+    public float currentHP = 100f;
+    public float attackDamage = 5f;
+    public float moveSpeed = 3f;
 
-    [Header("Runtime Stats")]
-    public float currentHP;
-    public float moveSpeed;
-    public int damage;
+    [Header("Level System")]
+    public int level = 1;
+    public int exp = 0;
+    public int expToNextLevel = 20;
 
-    public int killCount = 0;
+    [Header("Character Data")]
+    public CharacterSpec spec;             // ← สำหรับเช็ค type และ skillCooldown
+    public Sprite characterSprite;         // ← รูปตัวละครโชว์ในหน้า Stat
 
-    private SkillManager skillManager;
-
-    public Sprite characterSprite;
-    public int level;
-    public int currentExp;
-    public int expToNextLevel;
-    public int maxHP;
-    public int attackDamage;
-    public List<WeaponSO> weapons = new List<WeaponSO>();
-    public List<AccessorySO> accessories = new List<AccessorySO>();
-
-
+    public Dictionary<WeaponSO, int> weaponLevels = new Dictionary<WeaponSO, int>();
+    public Dictionary<AccessorySO, int> accessoryLevels = new Dictionary<AccessorySO, int>();
 
     void Start()
     {
-        spec = GameSession.Instance.selectedCharacter;
-        if (spec == null)
-        {
-            Debug.LogError("SPEC IS NULL !!!");
-            return;
-        }
-        // โหลดค่าจากตัวละครที่เลือก
-        currentHP = spec.maxHP;
-        moveSpeed = spec.moveSpeed;
-        damage = spec.baseDamage;
-
-        skillManager = GetComponent<SkillManager>();
-        skillManager.Setup(spec);
+        currentHP = maxHP;
+        RightPanelStats.UpdateStats(this);  // อัปเดตหน้า Stat UI
     }
 
-    public void OnEnemyKilled()
-    {
-        killCount++;
-
-        // Passive Vampire = kill ครบ 20 → ระเบิดเลือด
-        if (spec.type == CharacterType.Vampire && killCount >= 20)
-        {
-            killCount = 0;
-            skillManager.TriggerVampirePassive();
-        }
-    }
-    public void TakeDamage(int amount)
+    // -------------------------
+    // Damage System
+    // -------------------------
+    public void TakeDamage(float amount)
     {
         currentHP -= amount;
-        Debug.Log("Player HP = " + currentHP);
 
         if (currentHP <= 0)
         {
-            Debug.Log("PLAYER DEAD");
+            currentHP = 0;
+            Die();
         }
-    }
-    public void Die()
-    {
-        // SceneManager.LoadScene("");
-        Destroy(gameObject);
 
-        Debug.Log("แฮม");
+        RightPanelStats.UpdateStats(this);
+    }
+
+    void Die()
+    {
+        Debug.Log("Player Died");
+        // ใส่ Game Over ก็ได้
+    }
+
+    // -------------------------
+    // Add EXP + LevelUp
+    // -------------------------
+    public void AddExp(int value)
+    {
+        exp += value;
+
+        if (exp >= expToNextLevel)
+            LevelUp();
+    }
+
+    void LevelUp()
+    {
+        exp = 0;
+        level++;
+
+        // เพิ่มค่าสเตทเวลาเลเวลอัพ
+        maxHP += 20;
+        currentHP = maxHP;
+        attackDamage += 2f;
+        moveSpeed += 0.2f;
+
+        RightPanelStats.UpdateStats(this);
     }
 }

@@ -12,19 +12,19 @@ public class InventoryItemPanel : MonoBehaviour
         Instance = this;
     }
 
-    public static void UpdateItems(PlayerStats stats)
-    {
-        // โชว์ Weapon + Accessories
-        foreach (var w in stats.weapons)
-        {
-            var slot = Instantiate(Instance.itemSlotPrefab, Instance.itemContainer);
-            slot.GetComponent<ItemSlot>().SetWeapon(w);
-        }
+    // public static void UpdateItems(PlayerStats stats)
+    // {
+    //     // โชว์ Weapon + Accessories
+    //     foreach (var w in stats.weapons)
+    //     {
+    //         var slot = Instantiate(Instance.itemSlotPrefab, Instance.itemContainer);
+    //         slot.GetComponent<ItemSlot>().SetWeapon(w);
+    //     }
 
-        foreach (var acc in stats.accessories)
-        {
-            var slot = Instantiate(Instance.itemSlotPrefab, Instance.itemContainer);
-            slot.GetComponent<ItemSlot>().SetAccessory(acc);
-        }
-    }
+    //     foreach (var acc in stats.accessories)
+    //     {
+    //         var slot = Instantiate(Instance.itemSlotPrefab, Instance.itemContainer);
+    //         slot.GetComponent<ItemSlot>().SetAccessory(acc);
+    //     }
+    // }
 }
